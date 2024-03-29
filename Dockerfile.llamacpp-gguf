@@ -1,0 +1,16 @@
+FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-devel as base
+
+ARG GGUF_URL
+ARG MODEL_NAME
+
+COPY --chmod=755 start.sh /start.sh
+
+RUN git clone https://github.com/ggerganov/llama.cpp /llama.cpp
+RUN bash -c "cd /llama.cpp && make -j\$(nproc --all) LLAMA_CUDA=1"
+
+RUN curl -L $GGUF_URL -o /model.gguf
+RUN ln -s /model.gguf /$MODEL_NAME.gguf
+
+WORKDIR /workspace
+
+ENTRYPOINT [ "/start-llamacpp-gguf.sh" ] 
